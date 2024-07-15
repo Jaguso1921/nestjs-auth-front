@@ -1,14 +1,13 @@
 import axios from 'axios';
 
 const handleLogin = async (user, pass) => {
-    try{
+    try {
         const response = await axios.post('http://localhost:3001/api/v1/auth/login', {
             email: user,
             password: pass,
         });
-        //response.data contains a token in BASE64 format
 
-        const decoded = atob(response.data);
+        const decoded = atob(response.data); // response.data contains a token in BASE64 format
         localStorage.setItem('token', response.data);
         localStorage.setItem('user', decoded);
         return true;
@@ -16,54 +15,55 @@ const handleLogin = async (user, pass) => {
         console.error(e);
         return false;
     }
-}
+};
 
-const getUsers = async () => {
+const addUsers = async (users, token) => {
     try {
-        //const response = await axios.get('fakeapi');
-        const response = {
-            data: [
-                {
-                    id: 1,
-                    name: 'muhammad fake',
-                    email: 'a@b.cl',
-                    status: true
-                },
+        const response = await axios.post('http://localhost:3001/api/v1/users/bulkCreate', users, {
+            headers: {
+                token,
+            }
+        });
+        return response.status === 200;
+    } catch (e) {
+        console.error(e);
+        return false;
+    }
+};
 
-                {
-                    id: 2,
-                    name: 'muhammed fake',
-                    email: 'b@b.cl',
-                    status: true
-                },
-                {
-                    id: 3,
-                    name: 'muhammid fake',
-                    email: 'c@b.cl',
-                    status: true
-                },
-            ]
-        }
+const getUsers = async ({ active, name, login_before_date, login_after_date }, token) => {
+    try {
+        const response = await axios.get('http://localhost:3001/api/v1/users/findUsers', {
+            headers: {
+                token,
+            },
+            params: {
+                active,
+                name,
+                login_before_date,
+                login_after_date,
+            }
+        });
         return response.data;
     } catch (e) {
         console.error(e);
-        return [];
+        return null;
     }
-}
+};
 
 const getUserById = async (id, token) => {
     try {
-        const response = await axios.get('http://localhost:3001/api/v1/users/' + id, {
+        const response = await axios.get(`http://localhost:3001/api/v1/users/${id}`, {
             headers: {
                 token,
             }
         });
         return response.data;
-    } catch(e){
+    } catch (e) {
         console.error(e);
         return null;
     }
-}
+};
 
 const logOut = async (token) => {
     try {
@@ -72,7 +72,7 @@ const logOut = async (token) => {
                 'token': token,
             }
         });
-        if(response.status !== 200){
+        if (response.status !== 200) {
             return false;
         }
         localStorage.removeItem('token');
@@ -82,10 +82,10 @@ const logOut = async (token) => {
         console.error(e);
         return false;
     }
-}
+};
 
 const registerUser = async (name, email, password, password_second, cellphone) => {
-    try{
+    try {
         const response = await axios.post('http://localhost:3001/api/v1/auth/register', {
             name,
             email,
@@ -94,15 +94,15 @@ const registerUser = async (name, email, password, password_second, cellphone) =
             cellphone,
         });
         return (response.status === 200);
-    }catch (e) {
+    } catch (e) {
         console.error(e);
         return false;
     }
-}
+};
 
 const updateUser = async (id, user, token) => {
     try {
-        const response = await axios.put('http://localhost:3001/api/v1/users/' + id, user, {
+        const response = await axios.put(`http://localhost:3001/api/v1/users/${id}`, user, {
             headers: {
                 token,
             }
@@ -112,10 +112,11 @@ const updateUser = async (id, user, token) => {
         console.error(e);
         return false;
     }
-}
+};
 
 export default {
     handleLogin,
+    addUsers,
     getUsers,
     getUserById,
     logOut,
